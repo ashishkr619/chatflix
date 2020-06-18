@@ -4,8 +4,11 @@ class Message extends React.Component{
 
     render(){
         return(
+            <div className='message'>
+                <div className='message-text' key={this.props.key}>{this.props.message}</div>
+            </div>
 
-            <p>Message1/</p>
+            
         
         )
     }

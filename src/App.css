@@ -1,6 +1,6 @@
 /* css variables */
 :root {
-	--main-color:#158FCA;
+	--main-color:#7209b7;
 	--secondary-color:#ffffff;
 	--main-text-color:#3e5869;
 	--secondary-text-color:#b0c7d6;
@@ -111,12 +111,12 @@
 
 .message .message-username {
 	font-size: 11px;
-	color: var(--main-text-color);
+	color: #f72585;
 	opacity: 0.9;
 	margin-bottom: 6px;
 }
 .message .message-text {
-	background: var(--main-color);
+	background: #f72585;
 	color: var(--secondary-color);
 	display: inline;
 	padding: 4px 8px;
