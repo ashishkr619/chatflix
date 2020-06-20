@@ -130,4 +130,114 @@ Finally we add onSubmit to our form element to submit our message
 ```
 ![](src/screenshots/step3.png)
 
-The code until [Step 3](https://github.com/ashishkr619/chatflix/tree/825a4147ffc9a827f9268bf20c0eb0e2e2533912)
+The code until [Step 3](https://github.com/ashishkr619/chatflix/tree/20073dd3754ee04b2552e74a56fee71f99358a8c)
+
+## Step 4- Sending Message & Displaying Sent Messages (The Concept of Inverse Data Flow in React)
+Let's now connect to Ably and broadcast our message.
+In SubmitMessageForm.js we send our message to ably
+
+```
+	handleSubmit(e){
+		e.preventDefault()
+		console.log(this.state.message)
+		const messageObject= this.state.message 
+		//connect to ably and send the actual message(this.state.message) in next step
+		/*global Ably*/
+		const channel = Ably.channels.get('vikings');
+		channel.publish('add_comment', messageObject, err => {
+			if (err) {
+			  console.log('Unable to publish message; err = ' + err.message);
+			}
+		  });
+		
+		  // Clear input fields
+		e.target.elements.message.value = '';
+		
+		}  
+...
+```
+In App.js 
+to receive and display messsages we need to do two work
+1. we fetch all previous messages on page reload (so we will use componentdidMount to make the api connection and fetch all messages)
+2.we fetch the message the user is typing and then render on the same the page
+
+
+2.fetch the message the user is typing and then render on the same the page
+We already know that data flows in one direction inside the react app from app.js(parent) to smaller(child) components, but this is a different case, we need the data from SubmitMessageForm (smaller/child component) to App.js(higher/parent component).The App.js then receives the message and send it to MessageList Component so that it can render it.
+
+**The Concept of Inverse Data Flow in React**
+When data flows back from the child component to parent component.
+
+To achieve this we create a function displayMessage in App.js and hook this function into SubmitMessageFormComponet so that on successful  message submit ,we instantly catch it and re-render it on the ui
+
+Inside App.js
+```
+displayMessage(message){
+// get the single message,concat to list of messages
+this.setState({
+    messages:[...this.state.messages,message] // a way of concating
+})
+
+}
+or another way to write
+displayMessage(message){
+// get the single message,concat to list of messages
+this.setState(prevState=>{
+    return{
+        messages:prevState.messages.concat(message)
+    }
+})
+
+}
+
+```
+Inside 
+
+```
+
+	handleSubmit(e){
+		e.preventDefault()
+		console.log(this.state.message)
+		const messageObject= this.state.message
+		//connect to ably and send the actual message(this.state.message) in next step
+		/*global Ably*/
+		const channel = Ably.channels.get('vikings');
+		channel.publish('add_comment', messageObject, err => {
+			if (err) {
+			  console.log('Unable to publish message; err = ' + err.message);
+			}
+			else{
+
+			// on successful submission to ably instantly update the ui(the hook)
+			this.props.displayMessage(messageObject)
+
+			}
+		  });
+		
+		  // Clear input fields
+		e.target.elements.message.value = '';
+		
+		}  
+```
+
+1.fetch all previous messages on page reload (so we will use componentdidMount to make the api connection and fetch all messages)
+```
+componentDidMount() {
+    /*global Ably*/
+    const channel = Ably.channels.get('persistedmessage:vikings');
+  
+    channel.attach();
+      channel.once('attached', () => {
+        channel.history((err, page) => {
+          // create a new array with comments only in an reversed order (i.e old to new)
+          const messages = Array.from(page.items, item => item.data)
+  
+          this.setState({messages }); 
+        });
+      });
+  }
+
+  ```
+  ![](src/screenshots/step4.png)
+
+The code until [Step 3](https://github.com/ashishkr619/chatflix/tree/20073dd3754ee04b2552e74a56fee71f99358a8c)

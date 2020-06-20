@@ -11,11 +11,34 @@ class App extends React.Component{
   constructor(){
     super()
     this.state={
-      messages:['hello boss','how are you'], // all the messages
+      messages:[], // all the messages
       rooms:[], // all the rooms
 
     }
+    this.displayMessage = this.displayMessage.bind(this)
   }
+  componentDidMount() {
+    /*global Ably*/
+    const channel = Ably.channels.get('persistedmessage:vikings');
+  
+    channel.attach();
+      channel.once('attached', () => {
+        channel.history((err, page) => {
+          // create a new array with comments only in an reversed order (i.e old to new)
+          const messages = Array.from(page.items, item => item.data)
+  
+          this.setState({messages }); 
+        });
+      });
+  }
+
+  displayMessage(message){
+    // get the single message,concat to list of messages
+    this.setState({
+        messages:[...this.state.messages,message] // a way of concating
+    })
+  }    
+
   
   render(){
     return(
@@ -23,7 +46,7 @@ class App extends React.Component{
         <RoomList />
         <MessageList messages={this.state.messages}/>
         <CreateRoom/>
-        <SubmitMessageForm/>
+        <SubmitMessageForm displayMessage={this.displayMessage}/>
 
 
       </div>
